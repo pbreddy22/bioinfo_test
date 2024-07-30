@@ -109,4 +109,29 @@ rule gunzip_files:
         gunzip -c {input} > {output}
         """
 
+
+import os
+
+# Full paths to the input files
+SAMPLES = ["/path/to/sample1.fastq.gz", "/path/to/sample2.fastq.gz"]
+
+# Output directory
+OUTPUT_DIR = "unzipped"
+
+# Function to get the base filename without extension
+def get_basename(path):
+    return os.path.splitext(os.path.splitext(os.path.basename(path))[0])[0]
+
+rule all:
+    input:
+        expand(os.path.join(OUTPUT_DIR, "{sample}.fastq"), sample=[get_basename(s) for s in SAMPLES])
+
+rule gunzip:
+    input:
+        lambda wildcards: [s for s in SAMPLES if get_basename(s) == wildcards.sample][0]
+    output:
+        os.path.join(OUTPUT_DIR, "{sample}.fastq")
+    shell:
+        "gunzip -c {input} > {output}"
+
        
