@@ -77,7 +77,7 @@ rule gunzip_files:
 
 
 
-        import os
+import os
 
 # Config section at the top of the Snakefile
 configfile: "config.yaml"
@@ -86,20 +86,27 @@ configfile: "config.yaml"
 INPUT_FLD = config["input_folder"]
 OUTPUT_FLD = config["output_folder"]
 
+# Get all input .gz files
+input_files = [f for f in os.listdir(INPUT_FLD) if f.endswith('.gz')]
+
+# Generate output files by replacing .gz with an empty string
+output_files = [os.path.join(OUTPUT_FLD, f.replace('.gz', '')) for f in input_files]
+
 # Rule to process all .gz files in the input folder
 rule all:
     input:
-        lambda wildcards: [os.path.join(OUTPUT_FLD, f.replace('.gz', '')) for f in os.listdir(INPUT_FLD) if f.endswith('.gz')]
+        output_files
 
 # Rule to gunzip files
 rule gunzip_files:
     input:
-        lambda wildcards: os.path.join(INPUT_FLD, f"{wildcards.file}.gz")
+        os.path.join(INPUT_FLD, "{file}.gz")
     output:
-        lambda wildcards: os.path.join(OUTPUT_FLD, f"{wildcards.file}")
+        os.path.join(OUTPUT_FLD, "{file}")
     shell:
         """
         echo "Unzipping {input} to {output}"
         gunzip -c {input} > {output}
         """
 
+       
